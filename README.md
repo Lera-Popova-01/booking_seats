@@ -1,127 +1,92 @@
-# Шаблон для проектов со стилизатором Ruff
+# 🪑 Бронирование мест в кафе — командный проект
 
-## Основное
+[![Python](https://img.shields.io/badge/Python-3.11-blue)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100%2B-teal)](https://fastapi.tiangolo.com/)
+[![FastAPI Users](https://img.shields.io/badge/FastAPI_Users-6.0%2B-purple)](https://fastapi-users.github.io/fastapi-users/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15%2B-blue)](https://www.postgresql.org/)
+[![Celery](https://img.shields.io/badge/Celery-5.3%2B-green)](https://docs.celeryq.dev/)
+[![RabbitMQ](https://img.shields.io/badge/RabbitMQ-3.12%2B-orange)](https://www.rabbitmq.com/)
+[![Docker](https://img.shields.io/badge/Docker-24%2B-blue)](https://www.docker.com/)
+[![Ruff](https://img.shields.io/badge/Ruff-0.1%2B-purple)](https://docs.astral.sh/ruff/)
 
-1. Базовая версия Python - 3.11.
-2. В файле `requirements_style.txt` находятся зависимости для стилистики.
-3. В каталоге `src` находится базовая структура проекта
-4. В файле `src/requirements.txt` прописываются базовые зависимости.
-5. В каталоге `infra` находятся настроечные файлы проекта. Здесь же размещать файлы для docker compose.
-6. Для фоновых задач используется Celery, базовая конфигурация находится в `src/tasks/celery_app.py`.
+**Бронирование мест в кафе** — командный проект, разработанный в рамках обучения на курсе **«Python-разработчик расширенный»** в Яндекс Практикуме.
 
-## Фоновые задачи и уведомления администратора
+Сервис предоставляет API для управления бронированием столов в кафе, просмотром меню, действующих акций, а также отправляет уведомления администраторам и напоминания пользователям.
 
-Для работы Celery требуется брокер сообщений (например, Redis).
+---
 
-Пример запуска воркера Celery (после установки зависимостей из `src/requirements.txt`):
+## 📋 Содержание
 
-```shell
-PYTHONPATH=. celery -A src.tasks.celery_app.celery_app worker --loglevel=info
-```
+- [Мой вклад в проект](#-мой-вклад-в-проект)
+- [Описание](#-описание)
+- [Реализованный функционал](#-реализованный-функционал)
+- [Технологии](#-технологии)
 
-Команда запускается **из корня репозитория** (каталог, где лежит папка `src`).
+---
 
-В модуле `src/notifications/tasks.py` реализованы задачи:
+## 👩‍💻 Мой вклад в проект
 
-- `debug_task` — тестовая задача для проверки работы Celery;
-- `send_admin_booking_created` — заготовка уведомления администратора о создании бронирования;
-- `send_admin_booking_updated` — заготовка уведомления администратора об изменении бронирования.
+Я отвечала за **разработку модели бронирования** и всей логики, связанной с этим блоком:
 
+### 🔹 Модель бронирования (Booking)
+- Спроектировала и реализовала модель `Booking` со следующими полями:
+  - `user`, `cafe`, `tables`, `slots` — связи с другими моделями
+  - `guest_number` — количество гостей
+  - `note` — заметка к бронированию
+  - `status` — статус (бронь, отменена, активна)
+  - `booking_date` — дата бронирования
+  - `is_active`, `created_at`, `updated_at` — системные поля
+- Настроила связи между моделями (ForeignKey, relationships)
+- Добавила валидации на уровне модели:
+  - Запрет бронирования на прошедшие даты
+  - Запрет изменения завершённых и активных бронирований
 
-## Стилистика
+### 🔹 CRUD операции для бронирований
+- Реализовала полный CRUD в `src/crud/booking.py`
+- Написала логику проверки непересекающихся бронирований
 
-Для стилизации кода используется пакеты `Ruff` и `Pre-commit`
+### 🔹 API эндпоинты для бронирований
+- Разработала эндпоинты в `src/api/endpoints/booking.py`
+- Реализовала разграничение прав доступа
 
-Проверка стилистики кода осуществляется командой
-```shell
-ruff check
-```
+### 🔹 Дополнительно
+- Настроила валидацию через Pydantic-схемы
+- Участвовала в код-ревью и была тимлидом нашей команды
 
-Если одновременно надо пофиксить то, что можно поиксить автоматически, то добавляем параметр `--fix`
-```shell
-ruff check --fix
-```
+## 📖 Описание
 
-Что бы стилистика автоматически проверялась и поправлялась при комитах надо добавить hook pre-commit к git
+Сервис предоставляет API для управления бронированием столов в кафе, просмотром и предзаказом меню, а также просмотром действующих акций.
 
-```shell
-pre-commit install
-```
+### Основные возможности
 
-## Локальная разработка (Docker Compose)
+| Категория | Функционал |
+|-----------|------------|
+| **Пользователи** | Регистрация, авторизация (JWT), просмотр/редактирование профиля, роли (админ/менеджер/пользователь) |
+| **Кафе** | Создание, просмотр, редактирование кафе. Управление менеджерами кафе |
+| **Столы** | Управление столами в кафе (количество мест, описание) |
+| **Временные слоты** | Управление доступным временем для бронирования |
+| **Бронирования** | Создание, просмотр, редактирование, отмена. Проверка непересекающихся бронирований |
+| **Блюда** | Управление меню блюд с привязкой к кафе |
+| **Акции** | Управление акциями с привязкой к кафе |
+| **Медиа** | Загрузка и получение изображений (JPG/PNG, до 5 МБ, UUID4) |
+| **Уведомления** | Напоминания о бронировании (Celery), уведомления администраторов |
 
-Команды выполняются из корня репозитория.
+---
 
-1. Подготовить файл переменных окружения:
-```shell
-cp infra/.env infra/.env
-```
+## 🛠 Технологии
 
-2. Запустить dev-контур:
-```shell
-docker compose -f infra/docker-compose.yml up --build
-```
+| Категория | Технологии |
+|-----------|------------|
+| **Язык** | Python 3.11 |
+| **Backend** | FastAPI |
+| **База данных** | PostgreSQL |
+| **ORM** | SQLAlchemy 2.0, Alembic |
+| **Очереди и задачи** | Celery, RabbitMQ |
+| **Аутентификация** | FastAPI Users, JWTStrategy, BearerTransport |
+| **Контейнеризация** | Docker, Docker Compose |
+| **Веб-сервер** | Nginx |
+| **Мониторинг** | Flower, Portainer |
+| **CI/CD** | GitHub Actions |
+| **Стилизация** | Ruff, Pre-commit |
 
-3. Проверить API:
-- `http://localhost:8000/health`
-
-В dev-режиме исходники из `src` и миграции примонтированы в контейнер, поэтому `uvicorn --reload` подхватывает изменения без пересборки образа.
-
-### Portainer в dev (опционально)
-
-```shell
-docker compose -f infra/docker-compose.yml --profile ops up --build
-```
-
-## Запуск в production (Docker Compose + Nginx)
-
-Команды выполняются из корня репозитория.
-
-1. Подготовить файл переменных окружения:
-```shell
-cp infra/.env infra/.env
-```
-
-2. Убедиться, что в `infra/.env` заданы обязательные значения:
-- `FIRST_SUPERUSER_EMAIL`
-- `FIRST_SUPERUSER_PASSWORD`
-- `FIRST_SUPERUSER_USERNAME` (опционально, по умолчанию `admin`)
-
-3. Запустить production-контур:
-```shell
-docker compose -f infra/docker-compose.prod.yml up -d
-```
-
-4. Проверить доступность:
-- API через Nginx: `http://localhost/health`
-- Nginx health endpoint: `http://localhost/nginx-health`
-
-5. Остановить контур:
-```shell
-docker compose -f infra/docker-compose.prod.yml down
-```
-
-### Запуск с Portainer (опционально)
-
-```shell
-docker compose -f infra/docker-compose.prod.yml --profile ops up -d
-```
-
-Portainer будет доступен по адресам:
-- `https://localhost:9443`
-- `http://localhost:9000`
-
-## CI/CD деплой (GitHub Actions)
-
-Workflow `.github/workflows/deploy.yml` на каждый push в `develop`:
-
-1. Собирает backend-образ из `src/Dockerfile` и пушит в DockerHub.
-2. Собирает gateway-образ из `infra/nginx/Dockerfile` и пушит в DockerHub.
-3. Копирует `infra/docker-compose.prod.yml` на сервер.
-4. На сервере создаёт `infra/.env` из секрета `PROD_ENV_FILE`.
-5. Выполняет `docker compose pull` и `docker compose up -d`.
-
-Для работы workflow нужны secrets:
-
-- `DOCKER_USERNAME`, `DOCKER_PASSWORD`
-- `HOST`, `USER`, `SSH_KEY`
+---
